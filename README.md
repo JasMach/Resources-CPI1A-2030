@@ -24,6 +24,16 @@ The site features:
 
 The site is automatically deployed using GitHub Actions whenever changes are pushed to the `main` branch. The configuration can be found in `.github/workflows/pages.yml`.
 
+### 📖 How to Publish
+
+**Quick Answer: Merge to `main` branch**
+
+1. Merge the pull request to the `main` branch
+2. The GitHub Actions workflow will automatically deploy the site
+3. Your site will be live at: https://jasmach.github.io/Resources-CPI1A-2030/
+
+For detailed publishing instructions, see [PUBLISHING.md](PUBLISHING.md).
+
 ## 💻 Technology
 
 The file browser is built with:
