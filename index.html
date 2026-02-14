@@ -195,15 +195,6 @@
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
 
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #5a6268;
-        }
-
         .folder {
             cursor: pointer;
         }
@@ -379,8 +370,7 @@
                         <div class="file-actions">
                             ${isFolder 
                                 ? `<button class="btn btn-primary" onclick="loadDirectory('${escapeHtml(item.path)}')">Open</button>`
-                                : `<a href="${item.download_url}" class="btn btn-primary" download>Download</a>
-                                   <a href="${item.download_url}" class="btn btn-secondary" target="_blank">View</a>`
+                                : `<a href="${item.download_url}" class="btn btn-primary" download>Download</a>`
                             }
                         </div>
                     </li>
@@ -397,7 +387,7 @@
             const breadcrumb = document.getElementById('breadcrumb');
             const parts = currentPath.split('/').filter(p => p);
             
-            let html = '<a class="breadcrumb-item" onclick="loadDirectory(''\')">🏠 Home</a>';
+            let html = '<a class="breadcrumb-item" onclick="loadDirectory(\'\')">🏠 Home</a>';
             
             let accumulatedPath = '';
             parts.forEach((part, index) => {
@@ -490,7 +480,7 @@
         // Show error message
         function showError(message) {
             const errorDiv = document.getElementById('errorMessage');
-            errorDiv.innerHTML = `<div class="error-message">⚠️ ${escapeHtml(message)}</div>`;
+            errorDiv.innerHTML = `<div class=\"error-message\">⚠️ ${escapeHtml(message)}</div>`;
             errorDiv.style.display = 'block';
             document.getElementById('fileBrowser').style.display = 'none';
         }
