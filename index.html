@@ -294,10 +294,7 @@
         </div>
 
         <footer>
-            <p>
-                Powered by <a href="https://docs.github.com/en/rest" target="_blank">GitHub API</a> | 
-                <a href="https://github.com/JasMach/Resources-CPI1A-2030" target="_blank">View Repository</a>
-            </p>
+            <p>Powered by <a href="https://docs.github.com/en/rest" target="_blank">GitHub API</a></p>
         </footer>
     </div>
 
@@ -383,7 +380,7 @@
                             ${isFolder 
                                 ? `<button class="btn btn-primary" onclick="loadDirectory('${escapeHtml(item.path)}')">Open</button>`
                                 : `<a href="${item.download_url}" class="btn btn-primary" download>Download</a>
-                                   <a href="${item.html_url}" class="btn btn-secondary" target="_blank">View</a>`
+                                   <a href="${item.download_url}" class="btn btn-secondary" target="_blank">View</a>`
                             }
                         </div>
                     </li>
@@ -400,7 +397,7 @@
             const breadcrumb = document.getElementById('breadcrumb');
             const parts = currentPath.split('/').filter(p => p);
             
-            let html = '<a class="breadcrumb-item" onclick="loadDirectory(\'\')">🏠 Home</a>';
+            let html = '<a class="breadcrumb-item" onclick="loadDirectory(''')">🏠 Home</a>';
             
             let accumulatedPath = '';
             parts.forEach((part, index) => {
