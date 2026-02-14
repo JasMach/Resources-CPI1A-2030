@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resources CPI1A-2030 - File Browser</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .search-box {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 20px;
+            font-size: 16px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            transition: border-color 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .breadcrumb {
+            padding: 15px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .breadcrumb-item {
+            color: #667eea;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .breadcrumb-item:hover {
+            background: #e9ecef;
+        }
+
+        .breadcrumb-separator {
+            margin: 0 5px;
+            color: #adb5bd;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 30px;
+            color: #6c757d;
+            font-size: 1.2em;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .file-browser {
+            padding: 30px;
+            min-height: 400px;
+        }
+
+        .file-list {
+            list-style: none;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+        }
+
+        .file-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .file-icon {
+            font-size: 24px;
+            margin-right: 15px;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .file-info {
+            flex-grow: 1;
+        }
+
+        .file-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+            word-break: break-word;
+        }
+
+        .file-meta {
+            font-size: 13px;
+            color: #6c757d;
+            margin-top: 4px;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .folder {
+            cursor: pointer;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 30px;
+            color: #6c757d;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            margin: 20px 30px;
+            border-radius: 8px;
+            border: 1px solid #f5c6cb;
+        }
+
+        footer {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            text-align: center;
+            color: #6c757d;
+            border-top: 1px solid #e9ecef;
+        }
+
+        footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .file-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .file-actions {
+                margin-top: 10px;
+                width: 100%;
+            }
+
+            .btn {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📚 Resources CPI1A-2030</h1>
+            <p>Browse and download course materials</p>
+        </header>
+
+        <div class="search-box">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search files and folders...">
+        </div>
+
+        <div class="breadcrumb" id="breadcrumb"></div>
+
+        <div class="file-browser">
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Loading files...</p>
+            </div>
+            <div id="fileBrowser" style="display: none;"></div>
+            <div id="errorMessage" style="display: none;"></div>
+        </div>
+
+        <footer>
+            <p>
+                Powered by <a href="https://docs.github.com/en/rest" target="_blank">GitHub API</a> | 
+                <a href="https://github.com/JasMach/Resources-CPI1A-2030" target="_blank">View Repository</a>
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        const REPO_OWNER = 'JasMach';
+        const REPO_NAME = 'Resources-CPI1A-2030';
+        const API_BASE = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents`;
+        
+        let currentPath = '';
+        let currentFiles = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDirectory('');
+            document.getElementById('searchInput').addEventListener('input', handleSearch);
+        });
+
+        // Load directory contents
+        async function loadDirectory(path) {
+            currentPath = path;
+            showLoading();
+            
+            try {
+                const url = path ? `${API_BASE}/${path}` : API_BASE;
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to load directory: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                currentFiles = Array.isArray(data) ? data : [data];
+                
+                // Sort: folders first, then files, alphabetically
+                currentFiles.sort((a, b) => {
+                    if (a.type === b.type) {
+                        return a.name.localeCompare(b.name);
+                    }
+                    return a.type === 'dir' ? -1 : 1;
+                });
+                
+                updateBreadcrumb();
+                renderFiles(currentFiles);
+                hideLoading();
+                
+            } catch (error) {
+                showError(`Error loading files: ${error.message}`);
+                hideLoading();
+            }
+        }
+
+        // Render file list
+        function renderFiles(files) {
+            const browser = document.getElementById('fileBrowser');
+            
+            if (files.length === 0) {
+                browser.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📂</div>
+                        <h3>No files found</h3>
+                        <p>This folder is empty or no files match your search.</p>
+                    </div>
+                `;
+                browser.style.display = 'block';
+                return;
+            }
+            
+            let html = '<ul class="file-list">';
+            
+            files.forEach(item => {
+                const icon = getFileIcon(item);
+                const size = item.size ? formatBytes(item.size) : '';
+                const isFolder = item.type === 'dir';
+                
+                html += `
+                    <li class="file-item ${isFolder ? 'folder' : ''}">
+                        <div class="file-icon">${icon}</div>
+                        <div class="file-info">
+                            <div class="file-name">${escapeHtml(item.name)}</div>
+                            ${size ? `<div class="file-meta">${size}</div>` : ''}
+                        </div>
+                        <div class="file-actions">
+                            ${isFolder 
+                                ? `<button class="btn btn-primary" onclick="loadDirectory('${escapeHtml(item.path)}')">Open</button>`
+                                : `<a href="${item.download_url}" class="btn btn-primary" download>Download</a>
+                                   <a href="${item.html_url}" class="btn btn-secondary" target="_blank">View</a>`
+                            }
+                        </div>
+                    </li>
+                `;
+            });
+            
+            html += '</ul>';
+            browser.innerHTML = html;
+            browser.style.display = 'block';
+        }
+
+        // Update breadcrumb navigation
+        function updateBreadcrumb() {
+            const breadcrumb = document.getElementById('breadcrumb');
+            const parts = currentPath.split('/').filter(p => p);
+            
+            let html = '<a class="breadcrumb-item" onclick="loadDirectory(\'\')">🏠 Home</a>';
+            
+            let accumulatedPath = '';
+            parts.forEach((part, index) => {
+                accumulatedPath += (accumulatedPath ? '/' : '') + part;
+                html += '<span class="breadcrumb-separator">/</span>';
+                html += `<a class="breadcrumb-item" onclick="loadDirectory('${escapeHtml(accumulatedPath)}')">${escapeHtml(part)}</a>`;
+            });
+            
+            breadcrumb.innerHTML = html;
+        }
+
+        // Handle search
+        function handleSearch(event) {
+            const searchTerm = event.target.value.toLowerCase().trim();
+            
+            if (!searchTerm) {
+                renderFiles(currentFiles);
+                return;
+            }
+            
+            const filtered = currentFiles.filter(item => 
+                item.name.toLowerCase().includes(searchTerm)
+            );
+            
+            renderFiles(filtered);
+        }
+
+        // Get appropriate icon for file type
+        function getFileIcon(item) {
+            if (item.type === 'dir') {
+                return '📁';
+            }
+            
+            const ext = item.name.split('.').pop().toLowerCase();
+            const iconMap = {
+                'pdf': '📄',
+                'doc': '📝',
+                'docx': '📝',
+                'ppt': '📊',
+                'pptx': '📊',
+                'xls': '📊',
+                'xlsx': '📊',
+                'txt': '📃',
+                'md': '📃',
+                'jpg': '🖼️',
+                'jpeg': '🖼️',
+                'png': '🖼️',
+                'gif': '🖼️',
+                'zip': '🗜️',
+                'rar': '🗜️',
+                'mp4': '🎬',
+                'mp3': '🎵',
+                'py': '🐍',
+                'js': '📜',
+                'html': '🌐',
+                'css': '🎨',
+                'json': '📋'
+            };
+            
+            return iconMap[ext] || '📄';
+        }
+
+        // Format bytes to human readable
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Show/hide loading state
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('fileBrowser').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        // Show error message
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.innerHTML = `<div class="error-message">⚠️ ${escapeHtml(message)}</div>`;
+            errorDiv.style.display = 'block';
+            document.getElementById('fileBrowser').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
