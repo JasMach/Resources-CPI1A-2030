@@ -397,7 +397,7 @@
             const breadcrumb = document.getElementById('breadcrumb');
             const parts = currentPath.split('/').filter(p => p);
             
-            let html = '<a class="breadcrumb-item" onclick="loadDirectory(''')">🏠 Home</a>';
+            let html = '<a class="breadcrumb-item" onclick="loadDirectory(''\')">🏠 Home</a>';
             
             let accumulatedPath = '';
             parts.forEach((part, index) => {
