@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      # Remove the line below after this branch is merged into main
       - copilot/add-note-and-button-to-math-course
   workflow_dispatch:
 

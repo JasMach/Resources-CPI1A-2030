@@ -335,6 +335,8 @@
     <script>
         const REPO_OWNER = 'JasMach';
         const REPO_NAME = 'Resources-CPI1A-2030';
+        // Update REPO_BRANCH to 'main' after this PR is merged into main
+        const REPO_BRANCH = 'copilot/add-note-and-button-to-math-course';
         const API_BASE = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents`;
         
         let currentPath = '';
@@ -352,7 +354,7 @@
             showLoading();
             
             try {
-                const url = path ? `${API_BASE}/${path}` : API_BASE;
+                const url = `${path ? `${API_BASE}/${path}` : API_BASE}?ref=${REPO_BRANCH}`;
                 const response = await fetch(url);
                 
                 if (!response.ok) {
