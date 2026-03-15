@@ -304,6 +304,97 @@
             box-shadow: 0 4px 16px rgba(145, 118, 183, 0.35);
         }
 
+        .btn-ghost {
+            background: transparent;
+            color: var(--accent-blue);
+            border-color: rgba(160, 176, 233, 0.28);
+        }
+
+        .btn-ghost:hover {
+            background: var(--accent-blue-dim);
+            border-color: var(--accent-blue);
+            color: var(--accent-blue-hover);
+            transform: translateY(-1px);
+        }
+
+        /* ── Viewer modal ── */
+        .viewer-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.88);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .viewer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px 10px 0 0;
+            flex-shrink: 0;
+        }
+
+        .viewer-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .viewer-header-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .viewer-body {
+            flex: 1;
+            background: #fff;
+            border: 1px solid var(--border-subtle);
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .viewer-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        .btn-close {
+            background: transparent;
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-close:hover {
+            background: var(--border-subtle);
+            color: var(--text-primary);
+            border-color: var(--border-accent);
+        }
+
         .folder {
             cursor: pointer;
         }
@@ -516,6 +607,20 @@
         </footer>
     </div>
 
+    <!-- ── File viewer overlay ── -->
+    <div id="viewerOverlay" class="viewer-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="viewerTitle">
+        <div class="viewer-header">
+            <span id="viewerTitle" class="viewer-title"></span>
+            <div class="viewer-header-actions">
+                <a id="viewerNewTab" href="#" target="_blank" rel="noopener noreferrer" class="btn-close" aria-label="Open in new tab"></a>
+                <button class="btn-close" onclick="closeViewer()" aria-label="Close viewer"></button>
+            </div>
+        </div>
+        <div class="viewer-body">
+            <iframe id="viewerFrame" class="viewer-iframe" title="File viewer" sandbox="allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"></iframe>
+        </div>
+    </div>
+
     <script>
         const REPO_OWNER = 'JasMach';
         const REPO_NAME = 'Resources-CPI1A-2030';
@@ -524,6 +629,7 @@
         
         let currentPath = '';
         let currentFiles = [];
+        let renderedFiles = [];  // tracks the currently displayed (possibly filtered) list
 
         // ── SVG icon library (Feather-style, stroke-based) ──────────────────────
         const ICONS = {
@@ -547,6 +653,9 @@
             alert:        `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
             download:     `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`,
             openFolder:   `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`,
+            eye:          `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`,
+            externalTab:  `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`,
+            close:        `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
         };
 
         // Initialize
@@ -556,6 +665,20 @@
             document.getElementById('searchIconEl').innerHTML = ICONS.search;
             document.getElementById('samyNoteIcon').innerHTML = ICONS.info;
             document.getElementById('samyBtn').insertAdjacentHTML('beforeend', ICONS.externalLink);
+
+            // Inject icons into viewer modal buttons
+            document.getElementById('viewerNewTab').innerHTML = ICONS.externalTab + ' New tab';
+            document.querySelector('[onclick="closeViewer()"]').innerHTML = ICONS.close + ' Close';
+
+            // Close viewer on backdrop click
+            document.getElementById('viewerOverlay').addEventListener('click', (e) => {
+                if (e.target === e.currentTarget) closeViewer();
+            });
+
+            // Close viewer on Escape key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && document.getElementById('viewerOverlay').style.display === 'flex') closeViewer();
+            });
 
             loadDirectory('');
             document.getElementById('searchInput').addEventListener('input', handleSearch);
@@ -607,6 +730,7 @@
         // Render file list
         function renderFiles(files) {
             const browser = document.getElementById('fileBrowser');
+            renderedFiles = files;
             
             if (files.length === 0) {
                 browser.innerHTML = `
@@ -622,22 +746,25 @@
             
             let html = '<ul class="file-list">';
             
-            files.forEach(item => {
+            files.forEach((item, index) => {
                 const icon = getFileIcon(item);
                 const size = item.size ? formatBytes(item.size) : '';
                 const isFolder = item.type === 'dir';
+                const safeName = escapeHtml(item.name);
+                const safePath = escapeHtml(item.path);
                 
                 html += `
                     <li class="file-item ${isFolder ? 'folder' : ''}">
                         <div class="file-icon">${icon}</div>
                         <div class="file-info">
-                            <div class="file-name">${escapeHtml(item.name)}</div>
+                            <div class="file-name">${safeName}</div>
                             ${size ? `<div class="file-meta">${size}</div>` : ''}
                         </div>
                         <div class="file-actions">
                             ${isFolder 
-                                ? `<button class="btn btn-primary" onclick="loadDirectory('${escapeHtml(item.path)}')">${ICONS.openFolder} Open</button>`
-                                : `<a href="${item.download_url}" class="btn btn-primary" download>${ICONS.download} Download</a>`
+                                ? `<button class="btn btn-primary" onclick="loadDirectory('${safePath}')">${ICONS.openFolder} Open</button>`
+                                : `<button class="btn btn-ghost" onclick="openViewer(${index})">${ICONS.eye} View</button>
+                                   <a href="${item.download_url}" class="btn btn-primary" download>${ICONS.download} Download</a>`
                             }
                         </div>
                     </li>
@@ -750,6 +877,40 @@
             errorDiv.innerHTML = `<div class="error-message">${ICONS.alert} ${escapeHtml(message)}</div>`;
             errorDiv.style.display = 'block';
             document.getElementById('fileBrowser').style.display = 'none';
+        }
+
+        // ── File viewer ─────────────────────────────────────────────────────────
+
+        // Build a URL suitable for in-browser viewing (no download prompt)
+        function getViewUrl(fileName, downloadUrl) {
+            const ext = fileName.split('.').pop().toLowerCase();
+            const officeFormats = ['ppt', 'pptx', 'doc', 'docx', 'xls', 'xlsx'];
+            if (officeFormats.includes(ext)) {
+                return `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(downloadUrl)}`;
+            }
+            // For PDFs, images, text, code: raw URL renders natively in the browser
+            return downloadUrl;
+        }
+
+        // Open the viewer overlay for a given file index in renderedFiles
+        function openViewer(index) {
+            const item = (index >= 0 && index < renderedFiles.length) ? renderedFiles[index] : null;
+            if (!item || !item.download_url) return;
+
+            const viewUrl = getViewUrl(item.name, item.download_url);
+
+            document.getElementById('viewerTitle').textContent = item.name;
+            document.getElementById('viewerNewTab').href = viewUrl;
+            document.getElementById('viewerFrame').src = viewUrl;
+            document.getElementById('viewerOverlay').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close the viewer overlay
+        function closeViewer() {
+            document.getElementById('viewerOverlay').style.display = 'none';
+            document.getElementById('viewerFrame').src = '';
+            document.body.style.overflow = '';
         }
     </script>
 </body>
