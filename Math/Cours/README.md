@@ -6,4 +6,4 @@ Les fichiers seront ajoutés au fur et à mesure de l'avancement du semestre.
 
 ---
 
-> Pour les ressources supplémentaires de Mathématiques, consultez le [site de Samy Youssoufine](https://samy-y.github.io/maths-cpi1a-class2030/).
+> Pour accéder aux cours de Math écrits en Latex, consultez le [site de Samy Youssoufine](https://samy-y.github.io/maths-cpi1a-class2030/).
