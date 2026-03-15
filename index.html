@@ -335,8 +335,7 @@
     <script>
         const REPO_OWNER = 'JasMach';
         const REPO_NAME = 'Resources-CPI1A-2030';
-        // Update REPO_BRANCH to 'main' after this PR is merged into main
-        const REPO_BRANCH = 'copilot/add-note-and-button-to-math-course';
+        const REPO_BRANCH = 'main';
         const API_BASE = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents`;
         
         let currentPath = '';
@@ -386,7 +385,9 @@
         // Show Samy note when in Math/Cours
         function updateSamyNote() {
             const note = document.getElementById('samyNote');
-            note.style.display = (currentPath === 'Math/Cours') ? 'flex' : 'none';
+            if (note) {
+                note.style.display = (currentPath === 'Math/Cours') ? 'flex' : 'none';
+            }
         }
 
         // Render file list
